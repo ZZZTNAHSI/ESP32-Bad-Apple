@@ -10,7 +10,6 @@
 // #define B_PIN_DEFAULT   19
 // #define C_PIN_DEFAULT   5
 // #define D_PIN_DEFAULT   17
-// #define E_PIN_DEFAULT   -1 // IMPORTANT: Change to a valid pin if using a 64x64px panel.
             
 // #define LAT_PIN_DEFAULT 4
 // #define OE_PIN_DEFAULT  15
@@ -18,6 +17,9 @@
 
 
 #include <Adafruit_Protomatter.h>
+#include "LittleFS.h"
+
+uint8_t buffer[256];
 
 // RGB pins
 uint8_t rgbPins[] = {
@@ -29,7 +31,6 @@ uint8_t rgbPins[] = {
   13  // B2
 };
 
-// Address pins (A-D for 64x32)
 uint8_t addrPins[] = {
   23, // A
   19, // B
@@ -41,7 +42,7 @@ uint8_t addrPins[] = {
 #define latchPin 4
 #define oePin  15
 #define clockPin 16
-// Create matrix object
+
 Adafruit_Protomatter matrix(
   32, 4, 1, rgbPins, 4, addrPins, clockPin, latchPin, oePin, false);
 
@@ -57,27 +58,26 @@ void setup() {
   }
 
   Serial.println("Display initialized!");
+
+  bool lfsStatus = LittleFS.begin(true);
+
+  File badAppleData = LittleFS.open("/BadAppleBin.bin", "rb");
+
+  if (!badAppleData || !lfsStatus) {
+    Serial.println("File failed to open");
+    return;
+  }
+
+  uint16_t toRead = 128;
+  badAppleData.read(buffer, toRead);
+  for (int i = 0; i < 128; i++) {
+    Serial.print(buffer[i]);
+  }
+
+
 }
 
 void loop() {
 
-  matrix.fillScreen(matrix.color565(255, 0, 0));
-  matrix.show();
-  delay(1000);
-
-  matrix.fillScreen(matrix.color565(0, 255, 0));
-  matrix.show();
-  delay(1000);
-
-  matrix.fillScreen(matrix.color565(0, 0, 255));
-  matrix.show();
-  delay(1000);
-
-  matrix.fillScreen(matrix.color565(255, 255, 255));
-  matrix.show();
-  delay(1000);
-
-  matrix.fillScreen(0);
-  matrix.show();
-  delay(1000);
+  
 }
